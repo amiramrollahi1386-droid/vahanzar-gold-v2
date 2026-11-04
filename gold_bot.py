@@ -190,6 +190,8 @@ def fetch_prices():
         data = r.json()
 
     cats = data["data"] if isinstance(data, dict) and "data" in data else data
+    if not isinstance(cats, list):
+        raise RuntimeError("جواب پنل فهرست محصولات نیست؛ احتمالاً cURL مال درخواست products نیست.")
     found = {}
     LAST_RAW.clear()
     for cat in cats:
@@ -203,6 +205,9 @@ def fetch_prices():
                 found[k] = {"unit": p.get("unit"),
                             "sell": int(round(sell / div, -3)) if sell else None,
                             "buy":  int(round(buy / div, -3)) if buy else None}
+    # بدون هیچ قیمتی، عکس پر از «—» و خلاصه‌ی خالی ارسال نشود
+    if not any(found.get(norm(t), {}).get("sell") or found.get(norm(t), {}).get("buy") for t in ITEMS):
+        raise RuntimeError("پنل برای هیچ‌کدام از آیتم‌ها قیمت برنگرداند؛ عکس ارسال نشد.")
     missing = [t for t in ITEMS if norm(t) not in found]
     if missing:
         logging.warning("این آیتم‌ها در پنل پیدا نشدند: %s", missing)
@@ -836,6 +841,12 @@ def run_loop(max_minutes):
             poll_admin(); print("خارج از ساعت کاری؛ کاری برای انجام نیست."); return 0
         print("منتظر شروع ساعت کاری:", start.strftime("%H:%M"), flush=True)
         sleep_until(start)
+    elif now.minute % INTERVAL or now.second > 30:
+        # اجرای ادامه‌دهنده وسط روز: عکس تکراری چند دقیقه بعد از عکس قبلی نفرستد؛ صبر تا نوبت بعدی
+        nxt = next_slot(now)
+        if nxt <= deadline:
+            print("منتظر نوبت بعدی:", nxt.strftime("%H:%M"), flush=True)
+            sleep_until(nxt)
 
     prev, fails, waiting_auth = None, 0, False
     while True:
