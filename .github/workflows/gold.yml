@@ -9,17 +9,17 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write        # برای ذخیره‌ی قیمت باز/بسته‌ی روز در data/day.json
-  actions: write          # برای درخواست اجرای بعدی بعد از سقف ۶ ساعته
+  contents: write
+  actions: write
 
 concurrency:
   group: gold
-  cancel-in-progress: false   # هم‌زمان فقط یک اجرا؛ بقیه در صف می‌مانند
+  cancel-in-progress: false
 
 jobs:
   send:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 355
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
@@ -37,15 +37,13 @@ jobs:
           FOOTER_TEXT: "@vahanzar"
           BRAND_NAME: "وهان زر"
           ABSHODE_DIVISOR: "4.3318"
-          # منبع قیمت: پنل قدیری (cURL ذخیره‌شده). سایت به کانال وصل نیست.
           PRICE_SOURCE: "panel"
-          # قیمت پنل هر دقیقه به سایت وهان زر هم فرستاده می‌شود (امضاشده با توکن ربات)
           SITE_SYNC: "1"
           SITE_API_URL: "https://jquffpllnzbuhiyfrori.supabase.co"
-          SITE_API_KEY: "sb_publishable_tEr6QjE51hNCRxTkOAf-NA_iy2_78La"   # کلید عمومی سایت؛ محرمانه نیست
+          SITE_API_KEY: "sb_publishable_tEr6QjE51hNCRxTkOAf-NA_iy2_78La"
           INTERVAL_MINUTES: "10"
-          START_HOUR: "0"
-          END_HOUR: "24"
+          START_HOUR: "10"
+          END_HOUR: "20"
           DEMO: "0"
           TZ: "Asia/Tehran"
-        run: python gold_bot.py --once
+        run: python gold_bot.py --loop 340
