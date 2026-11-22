@@ -24,6 +24,12 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements.txt
+      - name: Load original bot code
+        run: |
+          curl -fsSL -o gold_bot.py https://raw.githubusercontent.com/amiramrollahi1386-droid/vahanzar-gold/main/gold_bot.py
+          curl -fsSL -o design.py https://raw.githubusercontent.com/amiramrollahi1386-droid/vahanzar-gold/main/design.py
+          curl -fsSL -o content.py https://raw.githubusercontent.com/amiramrollahi1386-droid/vahanzar-gold/main/content.py
+          python -c "import gold_bot, design, content; print('bot modules ok')"
       - name: Send prices
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
