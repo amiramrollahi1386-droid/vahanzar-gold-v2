@@ -19,7 +19,7 @@ concurrency:
 jobs:
   send:
     runs-on: ubuntu-24.04
-    timeout-minutes: 355
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
@@ -44,8 +44,8 @@ jobs:
           SITE_API_URL: "https://jquffpllnzbuhiyfrori.supabase.co"
           SITE_API_KEY: "sb_publishable_tEr6QjE51hNCRxTkOAf-NA_iy2_78La"   # کلید عمومی سایت؛ محرمانه نیست
           INTERVAL_MINUTES: "10"
-          START_HOUR: "10"
-          END_HOUR: "20"
+          START_HOUR: "0"
+          END_HOUR: "24"
           DEMO: "0"
           TZ: "Asia/Tehran"
-        run: python gold_bot.py --loop 340
+        run: python gold_bot.py --once
