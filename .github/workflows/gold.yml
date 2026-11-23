@@ -2,7 +2,7 @@ name: gold-prices
 
 on:
   schedule:
-    - cron: "7,37 5-16 * * *"
+    - cron: "7,37 6-15 * * *"
   workflow_dispatch:
 
 permissions:
