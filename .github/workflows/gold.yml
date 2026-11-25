@@ -52,4 +52,46 @@ jobs:
           END_HOUR: "20"
           DEMO: "0"
           TZ: "Asia/Tehran"
-        run: python gold_bot.py --loop 340
+        run: |
+       echo "BOT_START_TS=$(date +%s)" >> "$GITHUB_ENV"
+       python gold_bot.py --loop 340
+      - name: Keep overnight chain alive
+        if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TZ: Asia/Tehran
+        run: |
+          python3 - << 'EOF'
+          import os, time, datetime, requests
+          from zoneinfo import ZoneInfo
+
+          tz = ZoneInfo("Asia/Tehran")
+          now = datetime.datetime.now(tz)
+          if 10 <= now.hour < 20:
+              print("Inside working hours; gold_bot.py already dispatched next run.")
+              raise SystemExit(0)
+
+          start_ts = float(os.getenv("BOT_START_TS") or time.time())
+          if now.hour >= 20:
+              next_open = (now + datetime.timedelta(days=1)).replace(hour=9, minute=50, second=0, microsecond=0)
+          else:
+              next_open = now.replace(hour=9, minute=50, second=0, microsecond=0)
+
+          wake_ts = min(next_open.timestamp(), start_ts + 335 * 60)
+          sleep_sec = max(0, wake_ts - time.time())
+          print(f"Sleeping {int(sleep_sec)}s until {datetime.datetime.fromtimestamp(wake_ts, tz).strftime('%Y-%m-%d %H:%M:%S')} before chaining next run...")
+          if sleep_sec > 0:
+              time.sleep(sleep_sec)
+
+          tok = os.getenv("GITHUB_TOKEN")
+          repo = os.getenv("GITHUB_REPOSITORY")
+          wf = os.getenv("GH_WORKFLOW_FILE", "gold.yml")
+          ref = os.getenv("GITHUB_REF_NAME", "main")
+          r = requests.post(
+              f"https://api.github.com/repos/{repo}/actions/workflows/{wf}/dispatches",
+              headers={"Authorization": f"Bearer {tok}", "Accept": "application/vnd.github+json"},
+              json={"ref": ref},
+              timeout=20,
+          )
+          print("Overnight dispatch status:", r.status_code)
+          EOF
