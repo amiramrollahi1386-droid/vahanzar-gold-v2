@@ -53,8 +53,8 @@ jobs:
           DEMO: "0"
           TZ: "Asia/Tehran"
         run: |
-       echo "BOT_START_TS=$(date +%s)" >> "$GITHUB_ENV"
-       python gold_bot.py --loop 340
+          echo "BOT_START_TS=$(date +%s)" >> "$GITHUB_ENV"
+           python gold_bot.py --loop 340
       - name: Keep overnight chain alive
         if: success()
         env:
